@@ -48,15 +48,15 @@ text_size, int data_size, int bss_size, int heap_stack_size, int num_of_pages, i
         i = '0';
 
     swapSize=(num_of_pages-TEXT_THRESH_HOLD)*num_of_process;
-    for (int i = 0; i < swapSize*num_of_pages; i++) {
-        if (write(swapfile_fd, "0", sizeof(char)) == -1) {
+    for (int i = 0; i < swapSize*page_size; i++) {
+        if (write(swapfile_fd, "0", 1) == -1) {
             perror("Error writing to swap");
             exit(1);
         }
     }
     swapMemory = new char*[swapSize];
     for(int i=0 ;i< swapSize;i++){
-        swapMemory[i]= new char[page_size];
+        swapMemory[i]= new char[page_size+1];
         swapMemory[i][page_size]='\0';
         for(int j=0;j<page_size;j++)
             swapMemory[i][j]='0';
@@ -112,9 +112,64 @@ char sim_mem::load(int process_id, int address) {
     return '\0';
 }
 
-void sim_mem::store(int process_id, int address, char value) {
+void sim_mem::checkMemFull(int address, int process, char PageCopy[]) {
+    int MemoryFull = -1;
+    char EmptyPage[page_size + 1];
+    for(int i=0;i<page_size;i++)
+        EmptyPage[i]='0';
+    for(int i=0;i<MEMORY_SIZE;i+=page_size){
+        if(strncmp(&main_memory[i], EmptyPage, page_size) == 0){
+            MemoryFull = i/page_size;
+            break;
+        }
+    }
+    if(MemoryFull==-1){ // Memory is full
+        if(address<TEXT_THRESH_HOLD)
 
+        SwapOutPage(address, process);
+    }
+    else{
+        strncpy(&main_memory[MemoryFull*page_size],PageCopy, page_size);
+        PageQ.push(MemoryFull);
+    }
+}
 
+void sim_mem::CopyPageFromExe(int id, int offset, char PageCopy[], int address, int process) {
+    lseek(id,offset,SEEK_SET);
+    if(read(id, PageCopy, page_size)<page_size){
+        perror("Read error");
+        exit(1);
+    }
+    checkMemFull(address, process, PageCopy);
+}
+
+/*Function to swap page out
+ * When memory is full, pop out front memory block entered*/
+void sim_mem::SwapOutPage(int address, int id) {
+    char empty[page_size];
+    for(int i=0;i<page_size;i++)
+        empty[i]='0';
+    int FrontQ = PageQ.front();
+    PageQ.pop();
+    int i=0;
+    for(;i<swapSize;i++)
+        if(strncmp(swapMemory[i],empty,page_size)==0)
+            break;
+    if(i==swapSize){
+        fprintf(stderr,"Swap memory is full!\n");
+        exit(1);
+    }
+    page_table[id][address].D=0;
+    page_table[id][address].V=0;
+    page_table[id][address].frame=-1;
+    page_table[id][address].swap_index=i;
+
+}
+void sim_mem::ReadReq(int address) {
+
+}
+
+void sim_mem::UpdatePageTable(page_descriptor page_table, int address, int frame) {
 
 }
 
@@ -156,43 +211,8 @@ void sim_mem::print_page_table() {
     }
 }
 
-int sim_mem::checkMemFull(int address, int process) {
-    int MemoryFull = -1;
-    char EmptyPage[page_size + 1];
-    for(int i=0;i<page_size;i++)
-        EmptyPage[i]='0';
-    for(int i=0;i<MEMORY_SIZE;i+=page_size){
-        if(strncmp(&main_memory[i], EmptyPage, page_size) == 0){
-            MemoryFull = i/page_size;
-            break;
-        }
-    }
-    if(MemoryFull==-1){ // Memory is full
-        if()
-        SwapOutPage(address);
-    }
-    else
-        ReadReq(MemoryFull);
-    return -1;
-}
+void sim_mem::store(int process_id, int address, char value) {
 
-void sim_mem::CopyPageFromExe(int id, int offset, char PageCopy[], int address, int process) {
-    lseek(id,offset,SEEK_SET);
-    if(read(id, PageCopy, page_size)<page_size){
-        perror("Read error");
-        exit(1);
-    }
-    checkMemFull(address, process);
-}
 
-void sim_mem::ReadReq(int address) {
-
-}
-
-void sim_mem::SwapOutPage(int address) {
-
-}
-
-void sim_mem::UpdatePageTable(page_descriptor page_table, int address, int frame) {
 
 }

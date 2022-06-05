@@ -10,9 +10,12 @@ int main() {
                    50, 25, 25,
                    25, 5, 1);
 
+
+
 //    mem_sm.store(1, 98, 'X');
 //   char val = mem_sm.load(1, 98);
 //    mem_sm.print_page_table();
-    mem_sm.print_memory();
+//    mem_sm.print_memory();
 //    mem_sm.print_swap();
 }
+

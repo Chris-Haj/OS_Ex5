@@ -49,9 +49,9 @@ private:
     int swapSize;
     char **swapMemory;
     queue <int> PageQ;
-    int checkMemFull(int address, int process);
+    void checkMemFull(int address, int process, char PageCopy[]);
     void CopyPageFromExe(int id, int offset, char PageCopy[], int address, int process);
-    void SwapOutPage(int address);
+    void SwapOutPage(int address, int id);
     void ReadReq(int address);
     void UpdatePageTable(page_descriptor page_table, int address, int frame);
     const int TEXT_THRESH_HOLD;
