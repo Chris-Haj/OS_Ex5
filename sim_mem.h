@@ -7,7 +7,7 @@
 #include <queue>
 
 using namespace std;
-#define MEMORY_SIZE 200
+#define MEMORY_SIZE 20
 extern char main_memory[MEMORY_SIZE];
 
 typedef struct page_descriptor {
@@ -20,7 +20,7 @@ typedef struct page_descriptor {
 
 class sim_mem {
     int swapfile_fd; //swap file fd
-    int program_fd[2]; //executable file fd
+    int program_fd[2]{}; //executable file fd
     int text_size; //memory that holds text (code)
     int data_size; //memory that holds initialized and static variables
     int bss_size; //memory that holds uninitialized and static variables
@@ -47,18 +47,19 @@ public:
     void print_page_table();
 private:
     int swapSize;
+    char *EmptyPage;
     char **swapMemory;
-    queue <int> PageQ;
-    void checkMemFull(int address, int process, char PageCopy[]);
-    void CopyPageFromExe(int id, int offset, char PageCopy[], int address, int process);
-    void SwapOutPage(int address, int id);
+    queue <int> FrameQ;
+    void checkMemFull(int page, char PageCopy[], int id, int *f);
+    void CopyPageFromExe(int id, int offset, char PageCopy[]);
     void ReadReq(int address);
-    void UpdatePageTable(page_descriptor page_table, int address, int frame);
+    void UpdatePageTable(page_descriptor table, int address, int frame);
+    void BringPageFromSwap(int process, int page, char PageCopy[]);
     const int TEXT_THRESH_HOLD;
     const int DATA_THRESH_HOLD;
     const int BSS_THRESH_HOLD;
-    const int HEAP_THRESH_HOLD;
-    const int STACK_THRESH_HOLD;
+    const int HEAP_STACK_THRESH_HOLD;
+    int SearchEmptySwap();
 };
 
 
